@@ -1,0 +1,171 @@
+<html>
+
+<head>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+	<title> T9 Keypad </title>
+	<style>
+		.button {
+			background-image: linear-gradient(to right, #6e7185 0%, #aaabb3 100%);
+			width: 120px;
+			height: 70px;
+			margin: 4px;
+			font-size: 22px;
+			border-radius: 50%;
+			transition-duration: 0.4s;
+		}
+
+		.button:hover {
+			background-image: linear-gradient(to right, #6e7185 0%, #ffffff 100%);
+		}
+
+		.content {
+			margin: auto;
+			width: 500px;
+			height: 400px;
+			padding: 40px;
+			margin-top: 50px;
+			border: 1px solid black;
+			border-radius: 3px;
+		}
+
+		.keypad {
+			margin-top: 30px;
+		}
+	</style>
+</head>
+
+<body class="content">
+
+	<input id="input" style="width:390px; height:40px; font-size:18px" type="text" disabled>
+	<button id="delete"
+		style="border-radius: 5px; width:100px; height:39px;background-image: linear-gradient(to right, #6e7185 0%, #aaabb3 100%);font-size: 18px;">
+		Delete</button></input>
+	<div class="keypad">
+		<button id="0" class="button">1 <br /> .,- </button>
+		<button id="1" class="button">2 <br /> abc </button>
+		<button id="2" class="button">3 <br /> def</button>
+		<br />
+		<button id="3" class="button">4 <br /> ghi</button>
+		<button id="4" class="button">5 <br /> jkl</button>
+		<button id="5" class="button">6 <br /> mno</button>
+		<br />
+		<button id="6" class="button">7 <br /> pqrs</button>
+		<button id="7" class="button">8 <br /> tuv</button>
+		<button id="8" class="button">9 <br /> wxyz</button>
+		<br />
+		<button id="9" class="button">*+_ </button>
+		<button id="10" class="button">0@ </button>
+		<button id="11" class="button">^# </button>
+	</div>
+
+</body>
+
+</html>
+<script type="text/javascript">
+	//Array to store long press values
+	longpress = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "", "0", "^"];
+	//Array to store keypad values
+	letters = [
+		".,!",
+		"abc",
+		"def",
+		"ghi",
+		"jkl",
+		"mno",
+		"pqrs",
+		"tuv",
+		"wxyz",
+		"*+_",
+		"@",
+		"#"
+	];
+
+	let input, curr, prev, nextChar, timeoutCheck, prevCheck, caps;
+	/* curr - current character pressed
+	   prev - previous character pressed
+	   nextChar - next character of a key
+	   timeoutCheck - check if timeout has occured
+	   prevCheck - if current key is same as previously pressed key
+	   caps - check if caps lock is on or not
+	*/
+
+	//Delete rightmost character when delete is clicked
+	$("#delete").click(function () {
+		input = $("#input").val();
+		input = input.substring(0, input.length - 1);
+		$("#input").val(input);
+	});
+
+	$(".button").mousedown(function () {
+		curr = $(this).attr("id");
+		prevCheck = 0;
+		timeoutCheck = 0;
+		if (curr == prev) {
+			prevCheck = 1;
+		}
+		clearTimeout(this.downTimer);
+
+		//set a timeout of 600 milliseconds which will input the number
+		this.downTimer = window.setTimeout(function () {
+
+			//Long pressing last key let's up type in uppercase
+			if (curr == 11) {
+				if (caps == 1) {
+					for (let i = 1; i < 9; i++) {
+						document.getElementById(i).style.textTransform = "lowercase";
+					}
+					letters = letters.map(function (x) { return x.toLowerCase(); })
+					caps = 0;
+				}
+				else {
+					caps = 1;
+					for (let i = 1; i < 9; i++) {
+						document.getElementById(i).style.textTransform = "uppercase";
+					}
+					letters = letters.map(function (x) { return x.toUpperCase(); })
+				}
+			}
+			else {
+				input = $("#input").val() + longpress[curr];
+				$("#input").val(input);
+			}
+			timeoutCheck = 1;
+		}, 600);
+
+
+
+	}).mouseup(function () {
+		clearTimeout(this.downTimer);
+		//if timeout has happened, do nothing
+		if (timeoutCheck == 1) {
+			timeoutCheck = 0;
+		}
+		else if (prevCheck == 1) {
+			input = $("#input").val();
+			input = input.substring(0, input.length - 1);
+			if (++nextChar >= letters[curr].length) {
+				//reset next character to 0 if it's greater than max
+				nextChar = 0;
+			}
+			input = input + letters[curr][nextChar];
+
+			$("#input").val(input);
+
+			clearTimeout(this.timer);
+			//if timeout occurs, insert same key again
+			this.timer = window.setTimeout(function () {
+				prev = null;
+			}, 600);
+		}
+		else {
+			input = $("#input").val() + letters[curr][0];
+			$("#input").val(input);
+			prev = curr;
+			nextChar = 0;
+			clearTimeout(this.timer);
+			this.timer = window.setTimeout(function () {
+				prev = null;
+			}, 500);
+		}
+	});
+</script>
